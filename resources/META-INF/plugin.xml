@@ -1,0 +1,24 @@
+<idea-plugin version="1">
+    <id>ru.touchin.staticanalysis</id>
+    <name>Static analysis runner</name>
+    <version>1.0</version>
+    <vendor email="arseniy.borisov@touchin.ru" url="http://www.touchin.ru">Touch Instinct</vendor>
+
+    <description><![CDATA[
+      This plugin adds shortcut for gradle staticAnalys task.
+    ]]></description>
+
+    <idea-version since-build="145.0"/>
+
+    <actions>
+        <action id="AnalysisRunner.Run"
+                class="ru.touchin.staticanalysis.action.RunStaticAnalysis"
+                icon="PluginIcons.PLUGIN_ICON"
+                text="Touchin static analysis"
+                description="Touchin static analysis">
+            <add-to-group group-id="ToolbarRunGroup" anchor="last"/>
+            <keyboard-shortcut first-keystroke="control shift S" keymap="$default"/>
+        </action>
+    </actions>
+
+</idea-plugin>
