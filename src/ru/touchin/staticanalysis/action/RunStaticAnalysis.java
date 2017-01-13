@@ -17,7 +17,7 @@ public class RunStaticAnalysis extends AnAction {
     }
 
     @Override
-    public void actionPerformed(AnActionEvent actionEvent) {
+    public void actionPerformed(final AnActionEvent actionEvent) {
         final Project project = actionEvent.getData(PlatformDataKeys.PROJECT);
         assert project != null;
         analysisTask = new AnalysisTask(project);
@@ -25,7 +25,7 @@ public class RunStaticAnalysis extends AnAction {
     }
 
     @Override
-    public void update(AnActionEvent actionEvent) {
+    public void update(final AnActionEvent actionEvent) {
         actionEvent.getPresentation().setEnabled(!(analysisTask != null && analysisTask.isRunning()));
     }
 

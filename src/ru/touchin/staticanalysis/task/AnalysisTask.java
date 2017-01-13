@@ -5,14 +5,19 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.wm.IdeFrame;
+import com.intellij.openapi.wm.WindowManager;
+import com.intellij.ui.AppIcon;
 import icons.PluginIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -31,13 +36,13 @@ public class AnalysisTask extends Task.Backgroundable {
     private Process gradlewProcess;
     private boolean isRunning;
 
-    public AnalysisTask(@NotNull Project project) {
+    public AnalysisTask(@NotNull final Project project) {
         super(project, "StaticAnalysis", true);
         this.project = project;
     }
 
     @Override
-    public void run(@NotNull ProgressIndicator progressIndicator) {
+    public void run(@NotNull final ProgressIndicator progressIndicator) {
         isRunning = true;
         progressIndicator.setIndeterminate(true);
 
@@ -66,11 +71,12 @@ public class AnalysisTask extends Task.Backgroundable {
         return isRunning;
     }
 
-    private void runAnalysis(@NotNull ProgressIndicator progressIndicator) throws Exception {
+    private void runAnalysis(@NotNull final ProgressIndicator progressIndicator) throws Exception {
         String analysisOutput = getAnalysisOutput(progressIndicator);
         if (!analysisOutput.startsWith("Error") && !analysisOutput.startsWith("FAILURE")) {
             if (Pattern.compile("Overall: PASSED").matcher(analysisOutput).find()) {
                 showInfoNotification("Overall: PASSED!");
+                requestIdeFocus();
             } else if (!Pattern.compile("Overall: FAILED").matcher(analysisOutput).find()) {
                 showErrorNotification("Can't detect analysis result. Try to run it manually.");
             } else {
@@ -91,7 +97,7 @@ public class AnalysisTask extends Task.Backgroundable {
     }
 
     @NotNull
-    private String getAnalysisOutput(@NotNull ProgressIndicator progressIndicator) throws Exception {
+    private String getAnalysisOutput(@NotNull final ProgressIndicator progressIndicator) throws Exception {
         final List<String> gradlewCommand = System.getProperty("os.name").startsWith("Windows")
                 ? Arrays.asList("cmd", "/c", "gradlew.bat", "staticAnalys")
                 : Arrays.asList("./gradlew", "staticAnalys");
@@ -113,13 +119,22 @@ public class AnalysisTask extends Task.Backgroundable {
         return analysisOutputBuilder.toString();
     }
 
-    private void showErrorNotification(@NotNull String message) {
+    private void requestIdeFocus() {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            final JFrame frame = WindowManager.getInstance().getFrame(project);
+            if (frame instanceof IdeFrame) {
+                AppIcon.getInstance().requestFocus((IdeFrame) frame);
+            }
+        });
+    }
+
+    private void showErrorNotification(@NotNull final String message) {
         new NotificationGroup(NOTIFICATION_TITLE, NotificationDisplayType.STICKY_BALLOON, true)
                 .createNotification(NOTIFICATION_TITLE, message, NotificationType.ERROR, null)
                 .notify(project);
     }
 
-    private void showInfoNotification(@NotNull String message) {
+    private void showInfoNotification(@NotNull final String message) {
         new NotificationGroup(NOTIFICATION_TITLE, NotificationDisplayType.STICKY_BALLOON, true,
                 null, PluginIcons.PLUGIN_ICON);
         new Notification(NOTIFICATION_TITLE, PluginIcons.PLUGIN_ICON, NOTIFICATION_TITLE,
