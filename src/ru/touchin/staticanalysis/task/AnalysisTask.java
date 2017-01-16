@@ -48,9 +48,9 @@ public class AnalysisTask extends Task.Backgroundable {
 
         try {
             runAnalysis(progressIndicator);
-        } catch (ProcessCanceledException canceledException) {
+        } catch (final ProcessCanceledException canceledException) {
             progressIndicator.cancel();
-        } catch (Exception exception) {
+        } catch (final Exception exception) {
             showErrorNotification("Exception: " + exception.getMessage());
         }
     }
@@ -124,6 +124,8 @@ public class AnalysisTask extends Task.Backgroundable {
             final JFrame frame = WindowManager.getInstance().getFrame(project);
             if (frame instanceof IdeFrame) {
                 AppIcon.getInstance().requestFocus((IdeFrame) frame);
+                AppIcon.getInstance().requestAttention(project, true);
+                AppIcon.getInstance().setOkBadge(project, true);
             }
         });
     }
