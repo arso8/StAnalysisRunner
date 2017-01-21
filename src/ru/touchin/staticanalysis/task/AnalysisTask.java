@@ -1,10 +1,7 @@
 package ru.touchin.staticanalysis.task;
 
 import com.intellij.ide.browsers.OpenUrlHyperlinkInfo;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationDisplayType;
-import com.intellij.notification.NotificationGroup;
-import com.intellij.notification.NotificationType;
+import com.intellij.notification.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -131,17 +128,29 @@ public class AnalysisTask extends Task.Backgroundable {
     }
 
     private void showErrorNotification(@NotNull final String message) {
+        hideOldNotifications();
         new NotificationGroup(NOTIFICATION_TITLE, NotificationDisplayType.STICKY_BALLOON, true)
                 .createNotification(NOTIFICATION_TITLE, message, NotificationType.ERROR, null)
                 .notify(project);
     }
 
     private void showInfoNotification(@NotNull final String message) {
+        hideOldNotifications();
         new NotificationGroup(NOTIFICATION_TITLE, NotificationDisplayType.STICKY_BALLOON, true,
                 null, PluginIcons.PLUGIN_ICON);
         new Notification(NOTIFICATION_TITLE, PluginIcons.PLUGIN_ICON, NOTIFICATION_TITLE,
                 null, message, NotificationType.INFORMATION, null)
                 .notify(project);
+    }
+
+    private void hideOldNotifications() {
+        final LogModel logModel = EventLog.getLogModel(project);
+        for (final Notification notification : logModel.getNotifications()) {
+            if (notification.getGroupId().equals(NOTIFICATION_TITLE)) {
+                logModel.removeNotification(notification);
+                notification.expire();
+            }
+        }
     }
 
 }
