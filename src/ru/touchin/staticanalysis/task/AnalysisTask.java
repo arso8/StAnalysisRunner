@@ -77,13 +77,13 @@ public class AnalysisTask extends Task.Backgroundable {
             } else if (!Pattern.compile("Overall: FAILED").matcher(analysisOutput).find()) {
                 showErrorNotification("Can't detect analysis result. Try to run it manually.");
             } else {
-                Pattern errorsCountPattern = Pattern.compile("Overall: FAILED \\((.+)\\)\u001b");
-                Pattern urlPattern = Pattern.compile("file:.+full_report.html");
+                Pattern errorsCountPattern = Pattern.compile("Overall: FAILED \\((.+)\\)");
                 Matcher errorsCountMatcher = errorsCountPattern.matcher(analysisOutput);
-                Matcher urlMatcher = urlPattern.matcher(analysisOutput);
-                if (errorsCountMatcher.find() && urlMatcher.find()) {
+                if (errorsCountMatcher.find()) {
                     showErrorNotification(String.format("Analysis failed: %s", errorsCountMatcher.group(1)));
-                    (new OpenUrlHyperlinkInfo(urlMatcher.group())).navigate(project);
+                    ApplicationManager.getApplication().invokeLater(() -> {
+                        ToolWindowManager.getInstance(project).getToolWindow("Static Analysis Log").show(null);
+                    });
                 } else {
                     showErrorNotification("Can't detect analysis result. Try to run it manually.");
                 }
